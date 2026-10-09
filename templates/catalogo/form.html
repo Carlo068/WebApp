@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block titulo %}{% if editar %}Editar{% else %}Nuevo{% endif %} producto · Multiempresas{% endblock %}
+
+{% block contenido %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+
+        <div class="mb-4">
+            <h4 class="mb-1 fw-bold">
+                {% if editar %}Editar producto{% else %}Nuevo producto{% endif %}
+            </h4>
+            <p class="text-muted mb-0">
+                {% if editar %}Modifica los datos del producto{% else %}Agrega un producto al catálogo{% endif %}
+            </p>
+        </div>
+
+        <div class="card table-card">
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% if form.empresa %}
+                    <div class="mb-3">
+                        <label class="form-label">Empresa <span class="text-danger">*</span></label>
+                        {{ form.empresa }}
+                        {% for error in form.empresa.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                        {{ form.nombre }}
+                        {% for error in form.nombre.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        {{ form.descripcion }}
+                        {% for error in form.descripcion.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Imagen</label>
+                        {{ form.imagen }}
+                        {% if editar and producto.imagen %}
+                            <div class="mt-2">
+                                <img src="{{ producto.imagen.url }}" alt="Imagen actual"
+                                     class="rounded border" style="max-height: 120px;">
+                            </div>
+                        {% endif %}
+                        {% for error in form.imagen.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Precio <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.precio }}
+                            </div>
+                            {% for error in form.precio.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Stock</label>
+                            {{ form.stock }}
+                            {% for error in form.stock.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4 form-check form-switch">
+                        {{ form.activo }}
+                        <label class="form-check-label" for="{{ form.activo.id_for_label }}">
+                            Producto activo (visible en catálogo)
+                        </label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>
+                            Guardar
+                        </button>
+                        <a href="{% url 'producto_lista' %}" class="btn btn-outline-secondary">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block titulo %}Pedido #{{ pedido.id }} · Multiempresas{% endblock %}
+
+{% block contenido %}
+
+<div class="card table-card mb-4">
+    <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3 py-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h4 class="mb-0 fw-bold">Pedido #{{ pedido.id }}</h4>
+                {% if esta_pagado %}
+                    <span class="badge bg-success"><i class="bi bi-lock-fill me-1"></i> Cerrado</span>
+                {% endif %}
+            </div>
+            <p class="text-muted mb-0 small">
+                Cliente: <strong>{{ pedido.cliente.nombre }}</strong> 
+                {% if pedido.fecha_creacion %}
+                    · Fecha: <strong>{{ pedido.fecha_creacion|date:"d/m/Y H:i" }}</strong>
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'pedido_lista' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Volver
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card table-card text-center p-3">
+            <span class="text-muted small fw-semibold text-uppercase">Total a pagar</span>
+            <h3 class="fw-bold text-dark mb-0 mt-1">${{ pedido.total_a_pagar }}</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card table-card text-center p-3">
+            <span class="text-muted small fw-semibold text-uppercase">Total pagado</span>
+            <h3 class="fw-bold text-success mb-0 mt-1">${{ total_pagado }}</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card table-card text-center p-3 border-{% if esta_pagado %}success{% else %}warning{% endif %}">
+            <span class="text-muted small fw-semibold text-uppercase">Saldo pendiente</span>
+            <h3 class="fw-bold {% if esta_pagado %}text-success{% else %}text-danger{% endif %} mb-0 mt-1">
+                {% if esta_pagado %}
+                    $0.00 <span class="badge bg-success fs-6 ms-1">PAGADO</span>
+                {% else %}
+                    ${{ saldo_pendiente }}
+                {% endif %}
+            </h3>
+        </div>
+    </div>
+</div>
+
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        
+        {% if esta_pagado %}
+        <div class="card table-card mb-4 bg-light border-success">
+            <div class="card-body text-center py-3">
+                <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i> Pedido Pagado</span>
+                <p class="text-muted small mb-0 mt-1">No es posible agregar más productos a un pedido completado. Si el cliente requiere más artículos, genera una nueva orden.</p>
+            </div>
+        </div>
+        {% else %}
+        <div class="card table-card mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-cart-plus me-1"></i> Agregar producto</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'agregar_detalle' pedido.id %}" class="row g-2 align-items-end">
+                    {% csrf_token %}
+                    <div class="col-md-7">
+                        <label class="form-label small text-muted mb-1">Producto</label>
+                        {{ form_detalle.producto }}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1">Cantidad</label>
+                        {{ form_detalle.cantidad }}
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card table-card">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-list-check me-1"></i> Productos en la orden</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Producto</th>
+                            <th class="text-center">Cant.</th>
+                            <th class="text-end">Precio Unit.</th>
+                            <th class="text-end">Subtotal</th>
+                            {% if not total_pagado %}
+                            <th class="text-end">Acciones</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in detalles %}
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">{{ item.producto.nombre }}</div>
+                            </td>
+                            <td class="text-center">{{ item.cantidad }}</td>
+                            <td class="text-end">${{ item.precio_unitario }}</td>
+                            <td class="text-end fw-bold">${{ item.subtotal }}</td>
+                            {% if not total_pagado %}
+                            <td class="text-end">
+                                <form method="post" action="{% url 'eliminar_detalle' pedido.id item.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar ítem">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                No hay productos en este pedido.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-lg-5">
+        {% if esta_pagado %}
+        <div class="card table-card mb-4 border-success">
+            <div class="card-body text-center py-4">
+                <i class="bi bi-patch-check-fill text-success" style="font-size: 2.5rem;"></i>
+                <h5 class="fw-bold mt-2 text-success mb-1">Cuenta Completa</h5>
+                <p class="text-muted small mb-0">Este pedido no cuenta con saldo pendiente.</p>
+            </div>
+        </div>
+        {% else %}
+        <div class="card table-card mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-cash-coin me-1"></i> Registrar Pago</h6>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">
+                    Saldo a favor disponible del cliente: 
+                    <strong class="text-primary">${{ pedido.cliente.saldo_a_favor }}</strong>
+                </p>
+                
+                <form action="{% url 'registrar_pago' pedido.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Usar Saldo a Favor</label>
+                        {{ form_pago.saldo_utilizado }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Efectivo / Tarjeta</label>
+                        {{ form_pago.monto_capturado }}
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check-circle me-1"></i> Aplicar Pago
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card table-card">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-clock-history me-1"></i> Historial de Cobros</h6>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for p in pagos %}
+                <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                    <div>
+                        <small class="text-muted d-block fw-semibold">{{ p.fecha_pago|date:"d/m/Y H:i" }}</small>
+                        <small class="text-secondary">Efectivo/Tarjeta: ${{ p.monto_capturado }} | Saldo: ${{ p.saldo_utilizado }}</small>
+                    </div>
+                    <span class="fw-bold text-success fs-6">+${{ p.saldo_utilizado|add:p.monto_capturado }}</span>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-center text-muted py-4">
+                    Sin pagos registrados.
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

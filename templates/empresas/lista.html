@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block titulo %}Empresas · Multiempresas{% endblock %}
+
+{% block contenido %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1 fw-bold">Empresas</h4>
+        <p class="text-muted mb-0">Administra las empresas del sistema</p>
+    </div>
+    {% if user.is_superuser %}
+    <a href="{% url 'empresa_nueva' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>
+        Nueva empresa
+    </a>
+    {% endif %}
+</div>
+
+<div class="card table-card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Nombre</th>
+                        <th>Contacto</th>
+                        <th>Estado</th>
+                        <th class="text-end pe-3">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for empresa in empresas %}
+                    <tr>
+                        <td class="ps-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
+                                    <i class="bi bi-building"></i>
+                                </div>
+                                <strong>{{ empresa.nombre }}</strong>
+                            </div>
+                        </td>
+                        <td>{{ empresa.contacto|default:"—" }}</td>
+                        <td>
+                            {% if empresa.activo %}
+                                <span class="badge bg-success-subtle text-success">Activa</span>
+                            {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary">Inactiva</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-3">
+                            <a href="{% url 'empresa_editar' empresa.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% if user.is_superuser %}
+                            <a href="{% url 'empresa_eliminar' empresa.id %}" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                            No hay empresas registradas
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
