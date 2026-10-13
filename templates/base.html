@@ -243,15 +243,19 @@
     <span>Productos</span>
 </a>
 
-        <a href="#" class="nav-link">
+        {% if perms.clientes.view_cliente %}
+        <a href="{% url 'cliente_lista' %}" class="nav-link">
             <i class="bi bi-people"></i>
             <span>Clientes</span>
         </a>
+        {% endif %}
 
-        <a href="#" class="nav-link">
+        {% if perms.ventas.view_pedido %}
+            <a href="{% url 'pedido_lista' %}" class="nav-link">
             <i class="bi bi-cart3"></i>
             <span>Pedidos</span>
         </a>
+        {% endif %}
 
         <hr class="mx-3 my-2 border-secondary opacity-25">
 

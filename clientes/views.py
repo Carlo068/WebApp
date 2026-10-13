@@ -1,4 +1,4 @@
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, render, redirect
 from django.core.paginator import Paginator
@@ -43,6 +43,7 @@ def cliente_lista(request):
 
 
 @login_required
+@permission_required('clientes.add_cliente', raise_exception=True)
 def cliente_nuevo(request):
     empresa = obtener_empresa(request.user)
 
